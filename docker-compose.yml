@@ -1,0 +1,22 @@
+version: "3"
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    working_dir: /app
+    tty: true
+    volumes:
+      - ./:/go
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - api_with_golang-mysql-data:/var/lib/mysql
+    environment: 
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: api_with_golang
+volumes:
+  api_with_golang-mysql-data:
