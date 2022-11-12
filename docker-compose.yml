@@ -5,9 +5,11 @@ services:
     ports:
       - "8080:8080"
     working_dir: /app
-    tty: true
     volumes:
-      - ./:/go
+      - type: bind
+        source: ./app
+        target: /app
+    tty: true
     depends_on:
       - mysql
 
@@ -15,6 +17,7 @@ services:
     image: mysql:5.7
     volumes:
       - api_with_golang-mysql-data:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
     environment: 
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: api_with_golang
