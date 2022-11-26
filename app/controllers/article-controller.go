@@ -2,37 +2,36 @@ package controllers
 
 import (
 	"fmt"
+	"main/db"
+	"main/models"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 // 全データを取得する
 func Index(c echo.Context) error {
-	dsn := "root:password@tcp(mysql:3306)/api_with_golang"
-	db, err := gorm.Open(mysql.Open(dsn))
+	db, err := db.ConnectDb()
 	if err != nil {
 		return err
 	}
-	result := []Article{}
-	db.Find(&result)
+	result := []models.Article{}
+	if err := db.Find(&result).Error; err != nil {
+		return err
+	}
 	return c.JSON(http.StatusOK, result)
 }
 
 // 受け取った単一データをDBに書き込む
 func StoreArticle(c echo.Context) error {
-	dsn := "root:password@tcp(mysql:3306)/api_with_golang"
-	db, err := gorm.Open(mysql.Open(dsn))
+	db, err := db.ConnectDb()
 	if err != nil {
 		return err
 	}
-	article := Article{
+	article := models.Article{
 		Title: c.FormValue("title"),
 	}
-	// 日本語がユニコードに変換されちゃう
 	if err := db.Create(&article).Error; err != nil {
 		return err
 	}
@@ -42,8 +41,7 @@ func StoreArticle(c echo.Context) error {
 }
 
 func UpdateArticle(c echo.Context) error {
-	dsn := "root:password@tcp(mysql:3306)/api_with_golang"
-	db, err := gorm.Open(mysql.Open(dsn))
+	db, err := db.ConnectDb()
 	if err != nil {
 		return err
 	}
@@ -53,9 +51,9 @@ func UpdateArticle(c echo.Context) error {
 		return err
 	}
 
-	// モデルの定義
-	article := Article{}
-	article.Id = param
+	// モデルの宣言
+	article := models.Article{}
+	article.ID = uint(param)
 
 	// DBの書き換え
 	if err := db.First(&article).Update("title", c.FormValue("title")).Error; err != nil {
@@ -67,10 +65,8 @@ func UpdateArticle(c echo.Context) error {
 }
 
 func DestroyArticle(c echo.Context) error {
-	dsn := "root:password@tcp(mysql:3306)/api_with_golang"
-	db, err := gorm.Open(mysql.Open(dsn))
+	db, err := db.ConnectDb()
 	if err != nil {
-		fmt.Printf(err.Error())
 		return err
 	}
 	// パラメータを取得し、整数型に変換
@@ -79,9 +75,9 @@ func DestroyArticle(c echo.Context) error {
 		fmt.Printf(err.Error())
 		return err
 	}
-	article := Article{
-		Id: param,
-	}
+	var article models.Article
+
+	article.ID = uint(param)
 
 	if err := db.Delete(&article).Error; err != nil {
 		fmt.Printf(err.Error())
@@ -90,10 +86,4 @@ func DestroyArticle(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, article)
 
-}
-
-// Articleテーブルのモデル
-type Article struct {
-	Id    int
-	Title string
 }

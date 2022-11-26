@@ -10,6 +10,7 @@ import (
 var e = createMux()
 
 func main() {
+
 	e.GET("/", controllers.Index)
 	e.POST("/", controllers.StoreArticle)
 	e.PUT("/:id", controllers.UpdateArticle)
